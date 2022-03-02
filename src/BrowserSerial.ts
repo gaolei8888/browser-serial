@@ -3,7 +3,7 @@
 // want to be able to specify pipelines of decoders
 // ie linedecoder or just standard decoder
 
-const defaultSerialOptions: SerialOptions = {
+export const defaultSerialOptions: SerialOptions = {
   baudRate: 115200,
   dataBits: 8,
   stopBits: 1,
@@ -12,7 +12,7 @@ const defaultSerialOptions: SerialOptions = {
   flowControl: "none",
 };
 
-const defaultSerialFilters: SerialPortRequestOptions = {};
+export const defaultSerialFilters: SerialPortRequestOptions = {};
 
 export class BrowserSerial {
   serialOptions: SerialOptions;
@@ -34,7 +34,7 @@ export class BrowserSerial {
     this.serialOptions = { ...defaultSerialOptions, ...serialOptions };
     this.serialFilters = { ...defaultSerialFilters, ...serialFilters };
 
-    this.EOF = "\n";
+    this.EOF = "\r";
     this.port = null;
 
     this.encoder = new TextEncoderStream();
@@ -47,7 +47,7 @@ export class BrowserSerial {
     // port writes to decoder.writable, i read from decoder.readable
     this.readTransformers = [this.decoder];
     this.readFromStream = this.decoder.readable;
-    if (this.EOF === "\n") {
+    if (this.EOF === "\r") {
       this.readTransformers.push(this.lineTransformer);
       this.readFromStream = this.lineTransformer.readable;
     }
@@ -130,7 +130,8 @@ export class BrowserSerial {
       } finally {
         console.log("unlocking reader");
         console.log("before unlock");
-        this.reader.releaseLock();
+        if (this.reader)
+          this.reader.releaseLock();
         console.log("after unlock");
         this.reader = null;
         console.log(this.reader);
